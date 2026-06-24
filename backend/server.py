@@ -111,7 +111,13 @@ for static_dir in ["static"]:
         app.mount(f"/{static_dir}", StaticFiles(directory=str(d)), name=f"frontend_{static_dir}")
 if FRONTEND_BUILD.exists():
     index_path = FRONTEND_BUILD / "index.html"
-    @app.route("/{full_path:path}", methods=["GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"])
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(str(index_path))
+    @app.head("/")
+    async def serve_index_head():
+        return FileResponse(str(index_path))
+    @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         file_path = FRONTEND_BUILD / full_path
         if file_path.exists() and file_path.is_file():
