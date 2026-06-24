@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 set -e
+
+echo "--- Installing Python deps ---"
 pip install -r requirements.txt
+
 echo "--- Node version ---"
 node --version
 npm --version
+
 echo "--- Installing frontend deps ---"
 cd frontend
-npm install
+yarn install
 echo "--- Building frontend ---"
-npm run build
-echo "--- Build output ---"
-ls -la build/ 2>/dev/null || echo "BUILD FAILED: no build/ directory"
+yarn build
 cd ..
+
+echo "--- Build output ---"
+ls -la frontend/build/
