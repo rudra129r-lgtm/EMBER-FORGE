@@ -8,4 +8,14 @@ services:
       - key: DB_NAME
         value: portfolio_prod
       - key: CORS_ORIGINS
-        value: https://pattradhara-dev.onrender.com
+        value: https://pattradhara-dev-frontend.onrender.com
+
+  - type: web
+    name: pattradhara-dev-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
