@@ -96,18 +96,24 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-FRONTEND_BUILD = ROOT_DIR.parent / "frontend" / "build"
+FRONTEND_BUILD = (ROOT_DIR.parent / "frontend" / "build").resolve()
+logger.info("FRONTEND_BUILD = %s, exists = %s", FRONTEND_BUILD, FRONTEND_BUILD.exists())
+for static_dir in ["static"]:
+    d = FRONTEND_BUILD / static_dir
+    if d.exists():
+        app.mount(f"/{static_dir}", StaticFiles(directory=str(d)), name=f"frontend_{static_dir}")
 if FRONTEND_BUILD.exists():
-    for static_dir in ["static"]:
-        d = FRONTEND_BUILD / static_dir
-        if d.exists():
-            app.mount(f"/{static_dir}", StaticFiles(directory=str(d)), name=f"frontend_{static_dir}")
+    index_path = FRONTEND_BUILD / "index.html"
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         file_path = FRONTEND_BUILD / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))
-        return FileResponse(str(FRONTEND_BUILD / "index.html"))
+        return FileResponse(str(index_path))
+else:
+    @app.get("/")
+    async def api_root():
+        return {"service": "pattradhara.dev", "status": "online"}
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
