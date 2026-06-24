@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dotenv import load_dotenv
@@ -95,6 +95,13 @@ app.add_middleware(
 )
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info("REQUEST: %s %s", request.method, request.url.path)
+    response = await call_next(request)
+    logger.info("RESPONSE: %s %s -> %s", request.method, request.url.path, response.status_code)
+    return response
 
 FRONTEND_BUILD = (ROOT_DIR.parent / "frontend" / "build").resolve()
 logger.info("FRONTEND_BUILD = %s, exists = %s", FRONTEND_BUILD, FRONTEND_BUILD.exists())
