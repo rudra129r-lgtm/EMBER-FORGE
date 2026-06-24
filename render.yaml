@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: pattradhara-dev
+    runtime: python
+    buildCommand: ./render-build.sh
+    startCommand: python server.py
+    envVars:
+      - key: DB_NAME
+        value: portfolio_prod
+      - key: CORS_ORIGINS
+        value: https://pattradhara-dev.onrender.com

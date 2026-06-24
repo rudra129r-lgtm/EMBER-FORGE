@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+**/.env
+*.log
+.DS_Store
+coverage/
+.vscode/
+.idea/
+*.tsbuildinfo
+__pycache__/
+EMBER FORGE/
+backend/.env
+frontend/.env
