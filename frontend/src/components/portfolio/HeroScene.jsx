@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, Suspense } from 'react';
+import { useRef, useState, useEffect, Suspense } from 'react';
 function Console({ mouse }) {
   const group = useRef(), innerRing = useRef(), outerRing = useRef(), core = useRef();
   useFrame((state, delta) => {
@@ -29,5 +29,14 @@ function Scene() {
   return (<><ambientLight intensity={0.3} /><pointLight position={[3,2,4]} intensity={2.4} color="#FF6B35" /><pointLight position={[-3,-2,2]} intensity={1.2} color="#FFD166" /><pointLight position={[0,0,-4]} intensity={0.8} color="#06D6A0" /><Console mouse={mouse} /></>);
 }
 export default function HeroScene() {
-  return (<div className="absolute inset-0 pointer-events-none"><Canvas camera={{ position: [0,0,5.5], fov: 45 }} dpr={[1, 1.5]}><Suspense fallback={null}><Scene /></Suspense></Canvas></div>);
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ob = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0 });
+    ob.observe(el);
+    return () => ob.disconnect();
+  }, []);
+  return (<div ref={ref} className="absolute inset-0 pointer-events-none">{visible && <Canvas camera={{ position: [0,0,5.5], fov: 45 }} dpr={[1, 1]}><Suspense fallback={null}><Scene /></Suspense></Canvas>}</div>);
 }

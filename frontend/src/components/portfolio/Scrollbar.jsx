@@ -29,7 +29,7 @@ export default function Scrollbar() {
     const decay = setInterval(() => {
       setVelocity(v => Math.max(0, v - 2));
       setActive(v => v ? Math.random() > 0.05 : false);
-    }, 50);
+    }, 200);
 
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
