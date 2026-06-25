@@ -1,15 +1,22 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useRef, useState, useEffect, Suspense } from 'react';
-function Console({ mouse }) {
+import { useRef, useEffect, Suspense } from 'react';
+function Console({ mouse, visibleRef }) {
   const group = useRef(), innerRing = useRef(), outerRing = useRef(), core = useRef();
-  useFrame((state, delta) => {
+  const reveal = useRef(1);
+  const wasHidden = useRef(false);
+  useFrame((_state, delta) => {
     if (!group.current) return;
+    if (!visibleRef.current) { wasHidden.current = true; return; }
+    if (wasHidden.current) { reveal.current = 0; wasHidden.current = false; }
+    if (reveal.current < 1) reveal.current = Math.min(1, reveal.current + delta * 2);
+    const speed = reveal.current;
+    const clampDelta = Math.min(delta, 0.05);
     const tx = mouse.current.x * 0.35, ty = mouse.current.y * 0.35;
-    group.current.rotation.y += (tx - group.current.rotation.y) * 0.05;
-    group.current.rotation.x += (-ty - group.current.rotation.x) * 0.05;
-    if (core.current) { core.current.rotation.x += delta * 0.4; core.current.rotation.y += delta * 0.6; }
-    if (innerRing.current) innerRing.current.rotation.z += delta * 0.25;
-    if (outerRing.current) outerRing.current.rotation.z -= delta * 0.12;
+    group.current.rotation.y += (tx - group.current.rotation.y) * 0.05 * speed;
+    group.current.rotation.x += (-ty - group.current.rotation.x) * 0.05 * speed;
+    if (core.current) { core.current.rotation.x += clampDelta * 0.4 * speed; core.current.rotation.y += clampDelta * 0.6 * speed; }
+    if (innerRing.current) innerRing.current.rotation.z += clampDelta * 0.25 * speed;
+    if (outerRing.current) outerRing.current.rotation.z -= clampDelta * 0.12 * speed;
   });
   return (
     <group ref={group} position={[1.5, 0, 0]}>
@@ -23,20 +30,20 @@ function Console({ mouse }) {
     </group>
   );
 }
-function Scene() {
+function Scene({ visibleRef }) {
   const mouse = useRef({ x: 0, y: 0 });
-  useFrame(({ pointer }) => { mouse.current.x = pointer.x; mouse.current.y = pointer.y; });
-  return (<><ambientLight intensity={0.3} /><pointLight position={[3,2,4]} intensity={2.4} color="#FF6B35" /><pointLight position={[-3,-2,2]} intensity={1.2} color="#FFD166" /><pointLight position={[0,0,-4]} intensity={0.8} color="#06D6A0" /><Console mouse={mouse} /></>);
+  useFrame(({ pointer }) => { if (visibleRef.current) { mouse.current.x = pointer.x; mouse.current.y = pointer.y; } });
+  return (<><ambientLight intensity={0.3} /><pointLight position={[3,2,4]} intensity={2.4} color="#FF6B35" /><pointLight position={[-3,-2,2]} intensity={1.2} color="#FFD166" /><pointLight position={[0,0,-4]} intensity={0.8} color="#06D6A0" /><Console mouse={mouse} visibleRef={visibleRef} /></>);
 }
 export default function HeroScene() {
   const ref = useRef(null);
-  const [visible, setVisible] = useState(true);
+  const visibleRef = useRef(true);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ob = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0 });
+    const ob = new IntersectionObserver(([e]) => { visibleRef.current = e.isIntersecting; }, { threshold: 0 });
     ob.observe(el);
     return () => ob.disconnect();
   }, []);
-  return (<div ref={ref} className="absolute inset-0 pointer-events-none">{visible && <Canvas camera={{ position: [0,0,5.5], fov: 45 }} dpr={[1, 1]}><Suspense fallback={null}><Scene /></Suspense></Canvas>}</div>);
+  return (<div ref={ref} className="absolute inset-0 pointer-events-none"><Canvas camera={{ position: [0,0,5.5], fov: 45 }} dpr={[1, 1]}><Suspense fallback={null}><Scene visibleRef={visibleRef} /></Suspense></Canvas></div>);
 }
